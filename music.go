@@ -1,6 +1,6 @@
 package mp3
 
-// #cgo LDFLAGS: -lmpg123
+// #cgo LDFLAGS: -lmpg123 -lao -ldl -lm
 /*
 #include <stdio.h>
 #include <unistd.h>
@@ -70,6 +70,23 @@ func DecodeTrack(file string) {
 	C.ao_initialize()
 	defer C.ao_shutdown()
 
+	default_driver := C.ao_default_driver_id()
+	var format C.ao_sample_format
+	var device *C.ao_device
+
+	//C.memset(&format,0,unsafe.Sizeof(format))
+	format.bits = 16
+	format.channels = 2
+	format.rate = 44100
+	format.byte_format = C.AO_FMT_LITTLE
+
+	device = C.ao_open_live(default_driver, &format, nil)
+	if device == nil {
+		fmt.Println("Error opening device")
+		return
+	}
+	defer C.ao_close(device)
+
 	var ret C.int
 	var fill C.size_t
 	buf := make([]C.uchar,1024*16)
@@ -77,8 +94,9 @@ func DecodeTrack(file string) {
         for {
                 ret = C.mpg123_read(m, (*C.uchar)(unsafe.Pointer(&buf)), 16*1024, &fill)
 		if ret == C.MPG123_DONE {
-			break;
+			break
 		}
+		C.ao_play(device,(*C.char)(unsafe.Pointer(&buf)),16*1024)
         }
 }
 

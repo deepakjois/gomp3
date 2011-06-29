@@ -2,7 +2,7 @@ include $(GOROOT)/src/Make.inc
 
 TARG=mp3
 CGOFILES=\
-	music.go libao.go
+	music.go
 
 include $(GOROOT)/src/Make.pkg
 
