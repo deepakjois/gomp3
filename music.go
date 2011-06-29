@@ -10,9 +10,6 @@ package mp3
 #include <errno.h>
 #include "mpg123.h"
 #include <ao/ao.h>
-
-char* get_list_at(char **list, int idx) { return list[idx]; }
-
 */
 import "C"
 
@@ -101,21 +98,4 @@ func DecodeTrack(file string) {
 		}
 		C.ao_play(device,(*C.char)(unsafe.Pointer(&buf)),16*1024)
         }
-}
-
-func ListDecoders() {
-        C.mpg123_init()
-        defer C.mpg123_exit()
-
-        m := C.mpg123_new(nil, nil)
-        defer C.mpg123_delete(m)
-
-        decoders := C.mpg123_decoders()
-        val_ptr := C.get_list_at(decoders, C.int(0))
-
-        if val_ptr == nil {
-                fmt.Println("nil")
-        }
-        str := C.GoString(val_ptr)
-        fmt.Println(str)
 }
