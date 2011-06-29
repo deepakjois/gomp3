@@ -43,7 +43,7 @@ import (
 	"fmt"
 )
 
-func PrintInfo(file string) {
+func DecodeTrack(file string) {
 
 	var v1 *C.mpg123_id3v1
 	var v2 *C.mpg123_id3v2
