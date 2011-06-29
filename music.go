@@ -75,9 +75,12 @@ func DecodeTrack(file string) {
 	var device *C.ao_device
 
 	//C.memset(&format,0,unsafe.Sizeof(format))
+	var channels, encoding C.int
+	var rate C.long
+	C.mpg123_getformat(m, &rate, &channels, &encoding)
 	format.bits = 16
-	format.channels = 2
-	format.rate = 44100
+	format.channels = channels
+	format.rate = C.int(rate)
 	format.byte_format = C.AO_FMT_LITTLE
 
 	device = C.ao_open_live(default_driver, &format, nil)
