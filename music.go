@@ -1,6 +1,6 @@
 package mp3
 
-// #cgo LDFLAGS: -lmpg123 -lao -ldl -lm
+// #cgo LDFLAGS: -lmpg123 -lao -ldl -lm -framework CoreFoundation
 /*
 #include <stdio.h>
 #include <unistd.h>
