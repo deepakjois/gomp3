@@ -18,13 +18,20 @@ import (
 	"unsafe"
 )
 
-func DecodeTrack(file string) {
+func Init() {
+        C.mpg123_init()
+	C.ao_initialize()
+}
+
+func Shutdown() {
+	C.ao_shutdown()
+	C.mpg123_exit()
+}
+
+func DecodeTrack(file string, control chan int) {
 
         var v1 *C.mpg123_id3v1
         var v2 *C.mpg123_id3v2
-
-        C.mpg123_init()
-        defer C.mpg123_exit()
 
         m := C.mpg123_new(nil, nil)
         defer C.mpg123_delete(m)
@@ -64,14 +71,10 @@ func DecodeTrack(file string) {
         }
 
 
-	C.ao_initialize()
-	defer C.ao_shutdown()
-
 	default_driver := C.ao_default_driver_id()
 	var format C.ao_sample_format
 	var device *C.ao_device
 
-	//C.memset(&format,0,unsafe.Sizeof(format))
 	var channels, encoding C.int
 	var rate C.long
 	C.mpg123_getformat(m, &rate, &channels, &encoding)
@@ -82,7 +85,7 @@ func DecodeTrack(file string) {
 
 	device = C.ao_open_live(default_driver, &format, nil)
 	if device == nil {
-		fmt.Println("Error opening device")
+		panic("Error opening device")
 		return
 	}
 	defer C.ao_close(device)
@@ -94,6 +97,7 @@ func DecodeTrack(file string) {
         for {
                 ret = C.mpg123_read(m, (*C.uchar)(unsafe.Pointer(&buf)), 16*1024, &fill)
 		if ret == C.MPG123_DONE {
+			control <- 1
 			break
 		}
 		C.ao_play(device,(*C.char)(unsafe.Pointer(&buf)),16*1024)

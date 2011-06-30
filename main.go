@@ -2,14 +2,16 @@ package main
 
 import "mp3"
 import "os"
-import "time"
-import "runtime"
 
 func main() {
+	mp3.Init()
+	defer mp3.Shutdown()
+
+	var control = make(chan int)
+
 	go func() {
-		runtime.LockOSThread()
-		mp3.DecodeTrack(os.Args[1])
+		mp3.DecodeTrack(os.Args[1],control)
 	}()
 
-	<- time.Tick(5e9)
+	<-control
 }
