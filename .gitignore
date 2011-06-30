@@ -16,6 +16,7 @@ core
 *.cgo*.c
 _cgo_*
 _obj
+main
 _test
 _testmain.go
 build.out
