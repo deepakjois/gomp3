@@ -14,12 +14,12 @@ package mp3
 import "C"
 
 import (
-        "fmt"
+	"fmt"
 	"unsafe"
 )
 
 func Init() {
-        C.mpg123_init()
+	C.mpg123_init()
 	C.ao_initialize()
 }
 
@@ -30,46 +30,45 @@ func Shutdown() {
 
 func DecodeTrack(file string, control chan int) {
 
-        var v1 *C.mpg123_id3v1
-        var v2 *C.mpg123_id3v2
+	var v1 *C.mpg123_id3v1
+	var v2 *C.mpg123_id3v2
 
-        m := C.mpg123_new(nil, nil)
-        defer C.mpg123_delete(m)
+	m := C.mpg123_new(nil, nil)
+	defer C.mpg123_delete(m)
 
-        f := C.CString(file)
+	f := C.CString(file)
 
-        if err := C.mpg123_open(m, f); err != C.MPG123_OK {
-                panic("Error reading file")
-        }
-        defer C.mpg123_close(m)
+	if err := C.mpg123_open(m, f); err != C.MPG123_OK {
+		panic("Error reading file")
+	}
+	defer C.mpg123_close(m)
 
-        C.mpg123_scan(m)
-        meta := C.mpg123_meta_check(m)
+	C.mpg123_scan(m)
+	meta := C.mpg123_meta_check(m)
 
-        if meta == C.MPG123_ID3 && C.mpg123_id3(m, &v1, &v2) == C.MPG123_OK {
-                var title, artist, album, genre string
-                switch false {
-                case v2 == nil:
-                        fmt.Println("ID3V2 tag found")
-                        title = C.GoString(v2.title.p)
-                        artist = C.GoString(v2.artist.p)
-                        album = C.GoString(v2.album.p)
-                        genre = C.GoString(v2.genre.p)
+	if meta == C.MPG123_ID3 && C.mpg123_id3(m, &v1, &v2) == C.MPG123_OK {
+		var title, artist, album, genre string
+		switch false {
+		case v2 == nil:
+			fmt.Println("ID3V2 tag found")
+			title = C.GoString(v2.title.p)
+			artist = C.GoString(v2.artist.p)
+			album = C.GoString(v2.album.p)
+			genre = C.GoString(v2.genre.p)
 
-                case v1 == nil:
-                        fmt.Println("ID3V2 tag found")
-                        title = C.GoString(&v1.title[0])
-                        artist = C.GoString(&v1.artist[0])
-                        album = C.GoString(&v1.album[0])
-                        genre = "Unknown" // FIXME convert int to string
-                }
+		case v1 == nil:
+			fmt.Println("ID3V2 tag found")
+			title = C.GoString(&v1.title[0])
+			artist = C.GoString(&v1.artist[0])
+			album = C.GoString(&v1.album[0])
+			genre = "Unknown" // FIXME convert int to string
+		}
 
-                fmt.Println(title)
-                fmt.Println(artist)
-                fmt.Println(album)
-                fmt.Println(genre)
-        }
-
+		fmt.Println(title)
+		fmt.Println(artist)
+		fmt.Println(album)
+		fmt.Println(genre)
+	}
 
 	default_driver := C.ao_default_driver_id()
 	var format C.ao_sample_format
@@ -92,14 +91,14 @@ func DecodeTrack(file string, control chan int) {
 
 	var ret C.int
 	var fill C.size_t
-	buf := make([]C.uchar,1024*16)
+	buf := make([]C.uchar, 1024*16)
 
-        for {
-                ret = C.mpg123_read(m, (*C.uchar)(unsafe.Pointer(&buf)), 16*1024, &fill)
+	for {
+		ret = C.mpg123_read(m, (*C.uchar)(unsafe.Pointer(&buf)), 16*1024, &fill)
 		if ret == C.MPG123_DONE {
 			control <- 1
 			break
 		}
-		C.ao_play(device,(*C.char)(unsafe.Pointer(&buf)),16*1024)
-        }
+		C.ao_play(device, (*C.char)(unsafe.Pointer(&buf)), 16*1024)
+	}
 }

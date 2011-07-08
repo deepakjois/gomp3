@@ -10,7 +10,7 @@ func main() {
 	var control = make(chan int)
 
 	go func() {
-		mp3.DecodeTrack(os.Args[1],control)
+		mp3.DecodeTrack(os.Args[1], control)
 	}()
 
 	<-control
